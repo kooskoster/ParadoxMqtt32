@@ -1,0 +1,33 @@
+name: Build ESP32 firmware
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install PlatformIO
+      run: pip install platformio
+
+    - name: Build firmware
+      run: pio run -e esp32doit-devkit-v1
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: firmware
+        path: .pio/build/esp32doit-devkit-v1/firmware.bin
