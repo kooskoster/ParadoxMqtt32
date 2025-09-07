@@ -24,39 +24,30 @@
 #include <time.h>
 #include <SimpleTimer.h>
 
-
-
-
-
-
 #define firmware "PARADOX32_2021.02.10.16"
 
-
-#define mqtt_server       "192.168.2.230"
+#define mqtt_server       "192.168.68.56"
 #define mqtt_port         "1883"
-#define mqtt_user         ""
-#define mqtt_password     "" 
+#define mqtt_user         "kooskoster"
+#define mqtt_password     "12345"
 
 #define Hostname          "paradox32CTL" //not more than 15
-
 
 #define timezone 2 //for setdate command
 const char* ntpServer = "pool.ntp.org";
 
-
 #define Stay_Arm  0x01
 #define Stay_Arm2 0x02
 #define Sleep_Arm 0x03
-#define Full_Arm 0x04
-#define Disarm  0x05
-#define Bypass 0x10
-#define PGMon 0x32
-#define PGMoff 0x33
+#define Full_Arm  0x04
+#define Disarm    0x05
+#define Bypass    0x10
+#define PGMon     0x32
+#define PGMoff    0x33
 
 #define MessageLength 37
 
 #define LED LED_BUILTIN
-
 
 bool USE6DigitCode = false;
 //If esp is dev kit then set to 1 else 0
@@ -71,7 +62,6 @@ int ArmStateRefresh = 0 ; //will send arm state every 30 seconds dont use smalle
 
 bool TRACE = 0;
 bool OTAUpdate = 1;
-
 
 #define def_topicOut "out" 
 #define def_topicStatus "status"
@@ -115,7 +105,5 @@ void PanelStatus1();
 String getpage();
 void panelSetDate();
 void sendHomeBridgeState(int _partition, SecuritySystemStates _SystemState, SecuritySystemCurrentStates _SystemCurrentState);
-
-
 
 #endif /*main_h*/
