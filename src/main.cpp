@@ -1381,107 +1381,44 @@ boolean reconnect() {
   return client.connected();
 }
 
-void setup_wifi(){
-  
-    WiFiManagerParameter custom_mqtt_server("server", "mqtt server", Mqtt_ServerAddress, 40);
-    WiFiManagerParameter custom_mqtt_port("port", "mqtt port", Mqtt_ServerPort, 6);
+void setup_wifi() {
+  // --- Wi-Fi direct met vaste gegevens uit main.h ---
+  WiFi.mode(WIFI_STA);
+  WiFi.persistent(true);
+  WiFi.setHostname(Hostname);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
 
-     WiFiManagerParameter custom_MqttUserName("Username", "mqtt Username", Mqtt_Username, 40);
-     WiFiManagerParameter custom_MqttUserPassword("Password", "mqtt Password", Mqtt_Password, 40);
+  // Wacht max ~30s op Wi-Fi
+  uint32_t start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < 30000) {
+    delay(250);
+  }
 
-    WiFiManager wifiManager;
-    if (ResetConfig)
-    {
-      trc(F("Resetting wifiManager"));
-      WiFi.disconnect();
-      wifiManager.resetSettings();
-    }
-       
-    if (strcmp(Mqtt_ServerPort,"")== 0  || strcmp(Mqtt_ServerAddress,"")== 0)
-    {
-      trc(F("Resetting wifiManager"));
-      WiFi.disconnect();
-      wifiManager.resetSettings();
-      ESP.restart();
-      delay(1000);
-    }
-    else
-    {
-      trc(F("values ar no null "));
-    }
+  // (Optioneel) Fallback AP als Wi-Fi niet lukt
+  if (WiFi.status() != WL_CONNECTED) {
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(Hostname);
+  }
 
+  // --- MQTT instellen op basis van #define in main.h ---
+  strcpy(Mqtt_ServerAddress, mqtt_server);
+  strcpy(Mqtt_ServerPort,  mqtt_port);
+  strcpy(Mqtt_Username,     mqtt_user);
+  strcpy(Mqtt_Password,     mqtt_password);
 
-    wifiManager.setSaveConfigCallback(saveConfigCallback);
-    wifiManager.setConfigPortalTimeout(180);
-    
-    wifiManager.addParameter(&custom_mqtt_server);
-    wifiManager.addParameter(&custom_mqtt_port);
-    wifiManager.addParameter(&custom_MqttUserName);
-    wifiManager.addParameter(&custom_MqttUserPassword);
-        
-    if (!wifiManager.autoConnect(Hostname,"configParadox32")) {
-      trc(F("failed to connect and hit timeout"));
-      digitalWrite(LED_BUILTIN,HIGH);
-      delay(3000);
-      //reset and try again, or maybe put it to deep sleep
-      ESP.restart();
-      delay(5000);
-    }
-    //if you get here you have connected to the WiFi
-    trc(F("connected...yeey :)"));
-  
-    strcpy(Mqtt_ServerAddress, custom_mqtt_server.getValue());
-    strcpy(Mqtt_ServerPort, custom_mqtt_port.getValue());
-    strcpy(Mqtt_Username, custom_MqttUserName.getValue());
-    strcpy(Mqtt_Password, custom_MqttUserPassword.getValue());
+  unsigned int mqtt_port_x = atoi(mqtt_port);
+  client.setServer(mqtt_server, mqtt_port_x);
+  client.setCallback(callback);
 
+  reconnect();
 
-    
-    //save the custom parameters to FS
-    if (shouldSaveConfig) {
-      trc(F("saving config"));
-      //DynamicJsonBuffer jsonBuffer;
-      //JsonObject& json = jsonBuffer.createObject();
-      DynamicJsonDocument json(256);
-
-      json["mqtt_server"] = Mqtt_ServerAddress;
-      json["mqtt_port"] = Mqtt_ServerPort;
-      json["mqtt_user"] = Mqtt_Username;
-      json["mqtt_password"] = Mqtt_Password;
-      
-      File configFile = SPIFFS.open("/config.json", "w");
-      if (!configFile) {
-        trc(F("failed to open config file for writing"));
-      }
-  
-      serializeJson(json,ParadoxSerial);
-      serializeJson(json,configFile);
-      configFile.close();
-      //end save
-    }
-  
-    trc(F("Setting Mqtt Server values"));
-    trc(F("mqtt_server : "));
-    trc(mqtt_server);
-    trc(F("mqtt_server_port : "));
-    trc(mqtt_port);
-
-    trc(F("Setting Mqtt Server connection"));
-    unsigned int mqtt_port_x = atoi (mqtt_port); 
-    client.setServer(mqtt_server, mqtt_port_x);
-    
-    client.setCallback(callback);
-   
-    reconnect();
-    
-    
+  if (WiFi.status() == WL_CONNECTED) {
     Debug.println(F("WiFi connected"));
     Debug.print("IP address:");
     Debug.println(WiFi.localIP());
-    digitalWrite(LED_BUILTIN,HIGH);
-  
+  }
+  digitalWrite(LED_BUILTIN, HIGH);
 }
-
 
 
 
