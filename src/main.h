@@ -33,6 +33,10 @@
 
 #define Hostname          "paradox32CTL" //not more than 15
 
+// --- Wi-Fi instellingen vast ---
+#define WIFI_SSID "Koster"
+#define WIFI_PASS "Taminiau9"
+
 #define timezone 2 //for setdate command
 const char* ntpServer = "pool.ntp.org";
 
